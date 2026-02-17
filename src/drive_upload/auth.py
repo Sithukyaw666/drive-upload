@@ -45,21 +45,34 @@ def authenticate(credentials_path: str) -> Credentials:
     # Check if token is provided directly via environment variable
     direct_token = os.environ.get("GOOGLE_DRIVE_TOKEN")
     if direct_token:
-        print("Using token from GOOGLE_DRIVE_TOKEN environment variable.", file=sys.stderr)
+        print("Using provided token.", file=sys.stderr)
         try:
             token_data = json.loads(direct_token)
-            creds = Credentials.from_authorized_user_info(token_data, SCOPES)
-            if creds.valid:
-                return creds
-            elif creds.expired and creds.refresh_token:
-                print("Token expired, attempting refresh...", file=sys.stderr)
-                creds.refresh(Request())
-                return creds
-        except (json.JSONDecodeError, ValueError) as e:
-            print(f"Invalid token format in GOOGLE_DRIVE_TOKEN: {e}", file=sys.stderr)
-            print("Token must include: client_id, client_secret, refresh_token, token", file=sys.stderr)
-            print("Use 'upload-drive --token generate' to create a proper token.json", file=sys.stderr)
+        except json.JSONDecodeError as e:
+            print(f"Invalid JSON in token: {e}", file=sys.stderr)
             raise SystemExit(1)
+
+        # Build Credentials directly from the token fields
+        access_token = token_data.get("access_token") or token_data.get("token")
+        if not access_token:
+            print("Token must contain 'access_token' or 'token' field.", file=sys.stderr)
+            raise SystemExit(1)
+
+        creds = Credentials(
+            token=access_token,
+            refresh_token=token_data.get("refresh_token"),
+            token_uri=token_data.get("token_uri", "https://oauth2.googleapis.com/token"),
+            client_id=token_data.get("client_id"),
+            client_secret=token_data.get("client_secret"),
+            scopes=SCOPES,
+        )
+
+        # If token has client credentials and is expired, try refreshing
+        if not creds.valid and creds.expired and creds.refresh_token and creds.client_id:
+            print("Token expired, refreshing...", file=sys.stderr)
+            creds.refresh(Request())
+
+        return creds
 
     token_path = _resolve_token_path(credentials_path)
     creds: Credentials | None = None

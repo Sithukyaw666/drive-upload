@@ -24,6 +24,7 @@ You need OAuth credentials from the [Google Cloud Console](https://console.cloud
 4. Download the JSON file and save it as `credentials.json`.
 
 **What's in each file:**
+
 - **`credentials.json`** = Your OAuth client credentials (`client_id`, `client_secret`) - like API keys
 - **`token.json`** = Your actual access tokens (`access_token`, `refresh_token`) - generated from credentials
 
@@ -46,6 +47,7 @@ upload-drive -s ./my_file.txt
 ### Token-based Usage (Headless Servers)
 
 **Step 1: Generate a reusable token**
+
 ```bash
 # Use your credentials.json to generate token.json (requires browser access)
 upload-drive --token generate -c ./credentials.json
@@ -54,11 +56,12 @@ upload-drive --token generate -c ./credentials.json
 ```
 
 **Step 2: Use the token for uploads**
+
 ```bash
 # Use generated token.json file (contains both OAuth tokens AND client credentials)
 upload-drive -s ./my_file.txt -t ./token.json
 
-# Or use token from environment variable  
+# Or use token from environment variable
 export GOOGLE_DRIVE_TOKEN='{"access_token":"ya29.a0A...", "refresh_token":"1//0G...", "client_id":"...apps.googleusercontent.com", "client_secret":"..."}'
 upload-drive -s ./my_file.txt
 
@@ -67,6 +70,7 @@ upload-drive -s ./my_file.txt -t '{"access_token":"ya29.a0A...", "refresh_token"
 ```
 
 **The Process:**
+
 1. `credentials.json` (client_id + client_secret) → OAuth flow → `token.json` (access_token + refresh_token + client credentials)
 2. Copy `token.json` to headless servers for standalone authentication
 
@@ -74,10 +78,10 @@ upload-drive -s ./my_file.txt -t '{"access_token":"ya29.a0A...", "refresh_token"
 
 ### Flags
 
-| Flag              | Description                                                                                                        |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------ |
-| -s, --source      | Path to the file or directory to upload. Required unless using `--token generate`.                                |
-| -c, --credentials | Path to credentials.json. Falls back to GOOGLE_DRIVE_CREDENTIALS env var.                                          |
+| Flag              | Description                                                                                                                 |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| -s, --source      | Path to the file or directory to upload. Required unless using `--token generate`.                                          |
+| -c, --credentials | Path to credentials.json. Falls back to GOOGLE_DRIVE_CREDENTIALS env var.                                                   |
 | -t, --token       | Token handling: `generate` to create token.json, path to token file, or raw JSON. Falls back to GOOGLE_DRIVE_TOKEN env var. |
 
 ## How It Works

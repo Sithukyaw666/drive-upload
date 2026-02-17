@@ -18,7 +18,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-s",
         "--source",
-        required=True,
+        default=None,
         help="Path to the file or directory to upload.",
     )
     parser.add_argument(
@@ -35,9 +35,10 @@ def _build_parser() -> argparse.ArgumentParser:
         "--token",
         default=None,
         help=(
-            "Google OAuth token JSON string. "
+            "Token handling: 'generate' to create token.json, "
+            "path to token.json file, or raw JSON string. "
             "Falls back to the GOOGLE_DRIVE_TOKEN environment variable. "
-            "If provided, --credentials is ignored."
+            "If provided, --credentials is ignored (except for 'generate')."
         ),
     )
     return parser
@@ -66,12 +67,50 @@ def main(argv: list[str] | None = None) -> None:
     parser = _build_parser()
     args = parser.parse_args(argv)
 
-    # If token is provided directly, set it in environment and skip credentials
+    # Handle token generation mode
+    if args.token == "generate":
+        if not args.credentials:
+            credentials_path = _resolve_credentials(None)
+        else:
+            credentials_path = args.credentials
+        
+        if not os.path.isfile(credentials_path):
+            print(f"Error: credentials file not found: {credentials_path}", file=sys.stderr)
+            raise SystemExit(1)
+        
+        print("Generating OAuth token...", file=sys.stderr)
+        creds = authenticate(credentials_path)
+        
+        # Save token.json in current directory
+        token_file = "token.json"
+        with open(token_file, "w") as f:
+            f.write(creds.to_json())
+        
+        print(f"\n✅ Token saved to {token_file}", file=sys.stderr)
+        print(f"Usage: upload-drive -s <file> -t {token_file}", file=sys.stderr)
+        return
+
+    # Validate source is provided for upload operations
+    if not args.source:
+        print("Error: --source is required for upload operations.", file=sys.stderr)
+        print("Use --token generate to create a token.json file.", file=sys.stderr)
+        raise SystemExit(1)
+
+    # Handle token file or direct token
     if args.token:
-        os.environ["GOOGLE_DRIVE_TOKEN"] = args.token
-        # Use a dummy credentials path since authenticate() will use the token
+        if os.path.isfile(args.token):
+            # Read token from file
+            print(f"Using token from file: {args.token}", file=sys.stderr)
+            with open(args.token, "r") as f:
+                os.environ["GOOGLE_DRIVE_TOKEN"] = f.read().strip()
+        else:
+            # Direct token JSON string
+            os.environ["GOOGLE_DRIVE_TOKEN"] = args.token
+        
+        # Use dummy credentials path since authenticate() will use the token
         creds = authenticate("/dev/null")
     else:
+        # Standard credentials-based flow
         credentials_path = _resolve_credentials(args.credentials)
         if not os.path.isfile(credentials_path):
             print(f"Error: credentials file not found: {credentials_path}", file=sys.stderr)

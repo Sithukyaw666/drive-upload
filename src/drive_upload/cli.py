@@ -81,12 +81,32 @@ def main(argv: list[str] | None = None) -> None:
         print("Generating OAuth token...", file=sys.stderr)
         creds = authenticate(credentials_path)
         
-        # Save token.json in current directory
+        # Read client info from credentials.json
+        import json
+        with open(credentials_path, "r") as f:
+            client_config = json.load(f)
+        
+        client_info = client_config.get("installed") or client_config.get("web")
+        if not client_info:
+            print("Error: Invalid credentials.json format", file=sys.stderr)
+            raise SystemExit(1)
+        
+        # Get the raw OAuth token data and add client credentials
+        token_data = json.loads(creds.to_json())
+        
+        # Ensure we have the client credentials required by from_authorized_user_info
+        token_data.update({
+            "client_id": client_info["client_id"],
+            "client_secret": client_info["client_secret"],
+        })
+        
+        # Save complete token.json in current directory
         token_file = "token.json"
         with open(token_file, "w") as f:
-            f.write(creds.to_json())
+            json.dump(token_data, f, indent=2)
         
         print(f"\n✅ Token saved to {token_file}", file=sys.stderr)
+        print(f"This file contains your access token and can be reused on headless servers.", file=sys.stderr)
         print(f"Usage: upload-drive -s <file> -t {token_file}", file=sys.stderr)
         return
 

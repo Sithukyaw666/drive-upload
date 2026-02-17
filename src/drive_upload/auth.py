@@ -57,7 +57,9 @@ def authenticate(credentials_path: str) -> Credentials:
                 return creds
         except (json.JSONDecodeError, ValueError) as e:
             print(f"Invalid token format in GOOGLE_DRIVE_TOKEN: {e}", file=sys.stderr)
-            print("Falling back to OAuth flow...", file=sys.stderr)
+            print("Token must include: client_id, client_secret, refresh_token, token", file=sys.stderr)
+            print("Use 'upload-drive --token generate' to create a proper token.json", file=sys.stderr)
+            raise SystemExit(1)
 
     token_path = _resolve_token_path(credentials_path)
     creds: Credentials | None = None

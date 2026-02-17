@@ -16,12 +16,16 @@ pip install -e .
 
 ### Prerequisites
 
-You need a credentials.json file from the [Google Cloud Console](https://console.cloud.google.com/):
+You need OAuth credentials from the [Google Cloud Console](https://console.cloud.google.com/):
 
 1. Create a project (or use an existing one).
 2. Enable the **Google Drive API**.
 3. Create **OAuth 2.0 Client ID** credentials (Desktop application).
-4. Download the JSON file and save it as credentials.json.
+4. Download the JSON file and save it as `credentials.json`.
+
+**What's in each file:**
+- **`credentials.json`** = Your OAuth client credentials (`client_id`, `client_secret`) - like API keys
+- **`token.json`** = Your actual access tokens (`access_token`, `refresh_token`) - generated from credentials
 
 ## Usage
 
@@ -43,22 +47,30 @@ upload-drive -s ./my_file.txt
 
 **Step 1: Generate a reusable token**
 ```bash
-# Generate token.json (requires browser access)
+# Use your credentials.json to generate token.json (requires browser access)
 upload-drive --token generate -c ./credentials.json
+# ✅ Token saved to token.json
+# This file contains your access token and can be reused on headless servers.
 ```
 
 **Step 2: Use the token for uploads**
 ```bash
-# Use generated token.json file
+# Use generated token.json file (contains both OAuth tokens AND client credentials)
 upload-drive -s ./my_file.txt -t ./token.json
 
-# Or use token from environment variable
-export GOOGLE_DRIVE_TOKEN='{"token":"ya29.a0A...", "refresh_token":"1//0G..."}'
+# Or use token from environment variable  
+export GOOGLE_DRIVE_TOKEN='{"access_token":"ya29.a0A...", "refresh_token":"1//0G...", "client_id":"...apps.googleusercontent.com", "client_secret":"..."}'
 upload-drive -s ./my_file.txt
 
-# Or pass token directly
-upload-drive -s ./my_file.txt -t '{"token":"ya29.a0A...", "refresh_token":"1//0G..."}'
+# Or pass complete token directly
+upload-drive -s ./my_file.txt -t '{"access_token":"ya29.a0A...", "refresh_token":"1//0G...", "client_id":"...", "client_secret":"..."}'
 ```
+
+**The Process:**
+1. `credentials.json` (client_id + client_secret) → OAuth flow → `token.json` (access_token + refresh_token + client credentials)
+2. Copy `token.json` to headless servers for standalone authentication
+
+> **Note**: The generated `token.json` includes your OAuth credentials (`client_id`, `client_secret`) and access tokens. Keep this file secure and don't commit it to version control.
 
 ### Flags
 

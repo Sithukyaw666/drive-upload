@@ -4,15 +4,15 @@ CLI tool to upload files and directories to Google Drive.
 
 ## Installation
 
-\`\`\`bash
+```bash
 pip install .
-\`\`\`
+```
 
 Or in editable/development mode:
 
-\`\`\`bash
+```bash
 pip install -e .
-\`\`\`
+```
 
 ### Prerequisites
 
@@ -25,7 +25,7 @@ You need a credentials.json file from the [Google Cloud Console](https://console
 
 ## Usage
 
-\`\`\`bash
+```bash
 # Upload a file using an explicit credentials path
 upload-drive -s ./my_file.txt -c ./credentials.json
 
@@ -35,7 +35,7 @@ upload-drive -s ./my_folder -c ./credentials.json
 # Use an environment variable for credentials
 export GOOGLE_DRIVE_CREDENTIALS=./credentials.json
 upload-drive -s ./my_file.txt
-\`\`\`
+```
 
 ### Flags
 

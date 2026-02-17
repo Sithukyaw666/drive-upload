@@ -25,24 +25,30 @@ You need a credentials.json file from the [Google Cloud Console](https://console
 
 ## Usage
 
+### Standard Usage (Desktop/Local)
+
 ```bash
 # Upload a file using an explicit credentials path
+
 upload-drive -s ./my_file.txt -c ./credentials.json
 
 # Upload a directory (it will be zipped automatically)
+
 upload-drive -s ./my_folder -c ./credentials.json
 
 # Use an environment variable for credentials
+
 export GOOGLE_DRIVE_CREDENTIALS=./credentials.json
 upload-drive -s ./my_file.txt
 ```
 
 ### Flags
 
-| Flag | Description |
-|------|-------------|
-| -s, --source | **(required)** Path to the file or directory to upload. |
-| -c, --credentials | Path to credentials.json. Falls back to GOOGLE_DRIVE_CREDENTIALS env var. |
+| Flag              | Description                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------------- |
+| -s, --source      | **(required)** Path to the file or directory to upload.                                            |
+| -c, --credentials | Path to credentials.json. Falls back to GOOGLE_DRIVE_CREDENTIALS env var.                          |
+| -t, --token       | OAuth token JSON. Falls back to GOOGLE_DRIVE_TOKEN env var. If provided, --credentials is ignored. |
 
 ## How It Works
 

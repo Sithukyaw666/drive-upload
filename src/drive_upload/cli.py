@@ -30,6 +30,16 @@ def _build_parser() -> argparse.ArgumentParser:
             "Falls back to the GOOGLE_DRIVE_CREDENTIALS environment variable."
         ),
     )
+    parser.add_argument(
+        "-t",
+        "--token",
+        default=None,
+        help=(
+            "Google OAuth token JSON string. "
+            "Falls back to the GOOGLE_DRIVE_TOKEN environment variable. "
+            "If provided, --credentials is ignored."
+        ),
+    )
     return parser
 
 
@@ -56,11 +66,16 @@ def main(argv: list[str] | None = None) -> None:
     parser = _build_parser()
     args = parser.parse_args(argv)
 
-    credentials_path = _resolve_credentials(args.credentials)
+    # If token is provided directly, set it in environment and skip credentials
+    if args.token:
+        os.environ["GOOGLE_DRIVE_TOKEN"] = args.token
+        # Use a dummy credentials path since authenticate() will use the token
+        creds = authenticate("/dev/null")
+    else:
+        credentials_path = _resolve_credentials(args.credentials)
+        if not os.path.isfile(credentials_path):
+            print(f"Error: credentials file not found: {credentials_path}", file=sys.stderr)
+            raise SystemExit(1)
+        creds = authenticate(credentials_path)
 
-    if not os.path.isfile(credentials_path):
-        print(f"Error: credentials file not found: {credentials_path}", file=sys.stderr)
-        raise SystemExit(1)
-
-    creds = authenticate(credentials_path)
     upload(args.source, creds)

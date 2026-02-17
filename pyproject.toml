@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "drive-upload"
+version = "0.1.0"
+description = "CLI tool to upload files and directories to Google Drive"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+dependencies = [
+    "google-api-python-client>=2.100.0",
+    "google-auth-httplib2>=0.2.0",
+    "google-auth-oauthlib>=1.0.0",
+]
+
+[project.scripts]
+upload-drive = "drive_upload.cli:main"
